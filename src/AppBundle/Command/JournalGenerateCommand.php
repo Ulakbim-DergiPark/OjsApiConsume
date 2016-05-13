@@ -61,9 +61,34 @@ class JournalGenerateCommand extends ContainerAwareCommand
     private $subjects = [1,2,3];
 
     /**
+     * @var int
+     */
+    private $language = 1;
+
+    /**
      * @var array
      */
     private $languages = [1,2];
+
+    /**
+     * @var int
+     */
+    private $publisher = 1;
+
+    /**
+     * @var int
+     */
+    private $country = 255;
+
+    /**
+     * @var int
+     */
+    private $articleType = 1;
+
+    /**
+     * @var int
+     */
+    private $title = 1;
 
     /**
      * @var array
@@ -101,7 +126,20 @@ class JournalGenerateCommand extends ContainerAwareCommand
         $this->apiBaseUri       = $this->container->getParameter('api_base_uri');
         $this->apikey           = $this->container->getParameter('apikey');
         $this->client           = new Client();
-        $this->faker            = Factory::create();
+        $this->faker            = Factory::create('tr_TR');
+        $this->periods          = $this->container->getParameter('periods');
+        $this->subjects         = $this->container->getParameter('subjects');
+        $this->language         = $this->container->getParameter('language');
+        $this->languages        = $this->container->getParameter('languages');
+        $this->publisher        = $this->container->getParameter('publisher');
+        $this->country          = $this->container->getParameter('country');
+        $this->articleType      = $this->container->getParameter('article_type');
+        $this->title            = $this->container->getParameter('title');
+        $this->fileStructureSetup();
+    }
+
+    private function fileStructureSetup()
+    {
         $cacheDir = $this->container->get('kernel')->getCacheDir().'/';
         $issueCacheDir = $cacheDir.'api_issue/';
         $articleCacheDir = $cacheDir.'api_article/';
@@ -160,7 +198,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
         $journal = [
             'translations' => [
                 'tr' => [
-                    'title' => $this->faker->text(70),
+                    'title' => $this->faker->text(70).' - '.date("H:i:s"),
                     'subtitle' => $this->faker->text(70),
                     'description' => $this->faker->text(1500),
                     'titleAbbr' => $this->faker->text(70),
@@ -168,8 +206,8 @@ class JournalGenerateCommand extends ContainerAwareCommand
             ],
             'titleTransliterated' => $this->faker->text(50),
             'accessModal' => 1,
-            'publisher' => 1,
-            'mandatoryLang' => 1,
+            'publisher' => $this->publisher,
+            'mandatoryLang' => $this->language,
             'languages' => $this->languages,
             'periods' => $this->periods,
             'subjects' => $this->subjects,
@@ -179,7 +217,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
             'eissn' => '',
             'founded' => 2014,
             'googleAnalyticsId' => 'Google Ana. ID',
-            'country' => 2,
+            'country' => $this->country,
             'footer_text' => $this->faker->text(30),
             'slug' => $this->faker->slug,
             'tags' => ['journal'],
@@ -197,7 +235,8 @@ class JournalGenerateCommand extends ContainerAwareCommand
 
             $this->createSections((int)$journalId);
             $this->createIssues((int)$journalId);
-        }catch(ClientException $e){
+        }catch(\Exception $e){
+            $this->io->error($e->getResponse()->getBody());
             return false;
         }
     }
@@ -229,8 +268,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
                 $this->io->writeln('Journal Section Created -> '.$section['translations']['tr']['title'].' -> '.$sectionId);
                 $this->sectionIds[] = $sectionId;
             }catch(\Exception $e){
-                echo $e->getMessage();
-
+                $this->io->error($e->getResponse()->getBody());
                 return false;
             }
         }
@@ -280,6 +318,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
                 $this->io->writeln('Journal Issue Created -> '.$issue['translations']['tr']['title'].' -> '.$issueId);
                 $this->createArticles($journalId, $issueId);
             }catch(\Exception $e){
+                $this->io->error($e->getResponse()->getBody());
                 return false;
             }
         }
@@ -293,7 +332,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
                     'tr' => [
                         'title' => $this->faker->text(70),
                         'keywords' => [$this->faker->text(10), $this->faker->text(10)],
-                        'abstract' => $this->faker->text(200),
+                        'abstract' => $this->faker->text(1500),
                     ]
                 ],
                 'titleTransliterated' => $this->faker->text(200),
@@ -307,7 +346,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
                 'lastPage' => ($number-1)*10+10,
                 'uri' => 'http://behram.com',
                 'abstractTransliterated' => $this->faker->text(150),
-                'articleType' => 2,
+                'articleType' => $this->articleType,
                 'orderNum' => $number,
                 'submissionDate' => '22-10-2015',
                 'header' => [
@@ -332,7 +371,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
                 $this->createAuthors($journalId, $articleId);
                 $this->createCitations($journalId, $articleId);
             }catch(\Exception $e){
-                echo $e->getMessage();
+                $this->io->error($e->getResponse()->getBody());
                 return false;
             }
         }
@@ -350,7 +389,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
             $this->io->writeln('Article added to issue -> '. implode(' ,', [$journalId, $issueId, $articleId, $sectionId]));
             return true;
         }catch(\Exception $e){
-            echo $e->getMessage();
+            $this->io->error($e->getResponse()->getBody());
             return false;
         }
     }
@@ -376,7 +415,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
             ]);
             $this->io->writeln('Journal Article File Created -> '.$articleFile['title']);
         }catch(\Exception $e){
-            echo $e->getMessage();
+            $this->io->error($e->getResponse()->getBody());
             return false;
         }
     }
@@ -392,19 +431,19 @@ class JournalGenerateCommand extends ContainerAwareCommand
                             'biography' => $this->faker->text(80),
                         ]
                     ],
-                    'title' => 1,
-                    'firstName' => $this->faker->name,
-                    'lastName' => $this->faker->name,
-                    'middleName' => $this->faker->name,
+                    'title' => $this->title,
+                    'firstName' => $this->faker->firstName,
+                    'lastName' => $this->faker->firstNameMale,
+                    'middleName' => $this->faker->firstName,
                     'phone' => $this->faker->phoneNumber,
                     'firstNameTransliterated' => '',
                     'middleNameTransliterated' => '',
                     'lastNameTransliterated' => '',
-                    'initials' => $this->faker->titleMale,
+                    'initials' => $this->faker->title,
                     'email' => $this->faker->email,
                     'address' => $this->faker->address,
                     'institution' => null,
-                    'country' => 225,
+                    'country' => $this->country,
                     'authorDetails' => $this->faker->text(200),
                 ],
                 'authorOrder' => $number,
@@ -420,7 +459,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
                 $this->io->writeln('Journal Article Author Created -> '.$articleAuthor['author']['firstName']);
 
             }catch(\Exception $e){
-                echo $e->getMessage();
+                $this->io->error($e->getResponse()->getBody());
                 return false;
             }
         }
@@ -430,7 +469,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
     {
         foreach(range(1,5) as $number){
             $articleCitation = [
-                'raw' => $this->faker->text(30),
+                'raw' => $this->faker->text(100),
                 'type' => 2,
                 'orderNum' => $number,
             ];
@@ -445,7 +484,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
                 $this->io->writeln('Journal Article Citation Created -> '.$articleCitation['raw']);
 
             }catch(\Exception $e){
-                echo $e->getMessage();
+                $this->io->error($e->getResponse()->getBody());
                 return false;
             }
         }

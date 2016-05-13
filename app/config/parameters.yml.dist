@@ -17,5 +17,13 @@ parameters:
 
     # A secret key that's used to generate certain security-related tokens
     secret:            ThisTokenIsNotSoSecretChangeIt
-    apikey: ''
-    api_base_uri: ''
+    apikey: Nzg4YWY3ZDVmYjM4MzU0NmNhN2RjZjI0NDU0ZWQ2YTNhNzQ2M2U1NA==
+    api_base_uri: 'http://beta.dergipark.gov.tr/api/v1/'
+    periods: [20,21,23]
+    subjects: [1,2,3]
+    language: 1
+    languages: [1,4,5]
+    publisher: 41
+    country: 225
+    article_type: 55
+    title: 3
