@@ -78,6 +78,8 @@ class JournalGenerateCommand extends ContainerAwareCommand
     private $sampleIssueHeaderEncoded;
     private $sampleArticleHeader = 'http://lorempixel.com/960/200/';
     private $sampleArticleHeaderEncoded;
+    private $sampleArticleFile = 'http://www.cbu.edu.zm/downloads/pdf-sample.pdf';
+    private $sampleArticleFileEncoded;
 
     protected function configure()
     {
@@ -103,11 +105,15 @@ class JournalGenerateCommand extends ContainerAwareCommand
         $cacheDir = $this->container->get('kernel')->getCacheDir().'/';
         $issueCacheDir = $cacheDir.'api_issue/';
         $articleCacheDir = $cacheDir.'api_article/';
+        $articleFileCacheDir = $cacheDir.'api_article_file/';
         if(!is_dir($cacheDir) || !is_dir($issueCacheDir)){
             mkdir($issueCacheDir, 0775, true);
         }
         if(!is_dir($cacheDir) || !is_dir($articleCacheDir)){
             mkdir($articleCacheDir, 0775, true);
+        }
+        if(!is_dir($cacheDir) || !is_dir($articleFileCacheDir)){
+            mkdir($articleFileCacheDir, 0775, true);
         }
         if(!file_exists($issueCacheDir.'sampleFile')){
             file_put_contents($issueCacheDir.'sampleIssueFile', file_get_contents($this->sampleIssueFile));
@@ -121,6 +127,10 @@ class JournalGenerateCommand extends ContainerAwareCommand
         if(!file_exists($articleCacheDir.'sampleArticleHeader')){
             file_put_contents($articleCacheDir.'sampleArticleHeader', file_get_contents($this->sampleArticleHeader));
         }
+        if(!file_exists($articleFileCacheDir.'sampleArticleFile')){
+            file_put_contents($articleFileCacheDir.'sampleArticleFile', file_get_contents($this->sampleArticleFile));
+        }
+        $this->sampleArticleFileEncoded = base64_encode(file_get_contents($articleFileCacheDir.'sampleArticleFile'));
         $this->sampleFileEncoded = base64_encode(file_get_contents($issueCacheDir.'sampleIssueFile'));
         $this->sampleIssueCoverEncoded = base64_encode(file_get_contents($issueCacheDir.'sampleIssueCover'));
         $this->sampleIssueHeaderEncoded = base64_encode(file_get_contents($issueCacheDir.'sampleIssueHeader'));
@@ -137,6 +147,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
     {
         $this->io->title($this->getDescription());
         $this->startGenerateProcess();
+        $this->io->success('Journal and related items created successfully!');
     }
 
     private function startGenerateProcess()
@@ -151,7 +162,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
                 'tr' => [
                     'title' => $this->faker->text(70),
                     'subtitle' => $this->faker->text(70),
-                    'description' => $this->faker->text(250),
+                    'description' => $this->faker->text(1500),
                     'titleAbbr' => $this->faker->text(70),
                 ]
             ],
@@ -292,8 +303,8 @@ class JournalGenerateCommand extends ContainerAwareCommand
                 'anonymous' => 1,
                 'pubdate' => '29-10-2015',
                 'pubdateSeason' => 8,
-                'firstPage' => 10,
-                'lastPage' => 20,
+                'firstPage' => ($number-1)*10,
+                'lastPage' => ($number-1)*10+10,
                 'uri' => 'http://behram.com',
                 'abstractTransliterated' => $this->faker->text(150),
                 'articleType' => 2,
@@ -346,16 +357,97 @@ class JournalGenerateCommand extends ContainerAwareCommand
 
     private function createFile($journalId, $articleId)
     {
-
+        $articleFile = [
+            'file' => [
+                'filename' => 'sampleArticleFile.pdf',
+                'encoded_content' => $this->sampleArticleFileEncoded,
+            ],
+            'type' => 2,
+            'langCode' => 1,
+            'title' => $this->faker->text(5),
+            'description' => $this->faker->text(50),
+        ];
+        try{
+            $this->client->post($this->apiBaseUri.'journal/'.$journalId.'/article/'.$articleId.'/files.json?apikey='.$this->apikey, [
+                'json' => $articleFile,
+                'headers' => [
+                    'Content-Type'     => 'application/json',
+                ]
+            ]);
+            $this->io->writeln('Journal Article File Created -> '.$articleFile['title']);
+        }catch(\Exception $e){
+            echo $e->getMessage();
+            return false;
+        }
     }
 
     private function createAuthors($journalId, $articleId)
     {
+        foreach(range(1,2) as $number){
+            $articleAuthor = [
+                'author' => [
+                    'orcid' => 'orcid-id',
+                    'translations' => [
+                        'tr' => [
+                            'biography' => $this->faker->text(80),
+                        ]
+                    ],
+                    'title' => 1,
+                    'firstName' => $this->faker->name,
+                    'lastName' => $this->faker->name,
+                    'middleName' => $this->faker->name,
+                    'phone' => $this->faker->phoneNumber,
+                    'firstNameTransliterated' => '',
+                    'middleNameTransliterated' => '',
+                    'lastNameTransliterated' => '',
+                    'initials' => $this->faker->titleMale,
+                    'email' => $this->faker->email,
+                    'address' => $this->faker->address,
+                    'institution' => null,
+                    'country' => 225,
+                    'authorDetails' => $this->faker->text(200),
+                ],
+                'authorOrder' => $number,
+            ];
+            try{
+                $this->client->post($this->apiBaseUri.'journal/'.$journalId.'/article/'.$articleId.'/authors.json?apikey='.$this->apikey, [
+                    'json' => $articleAuthor,
+                    'headers' => [
+                        'Content-Type'     => 'application/json',
+                    ]
+                ]);
 
+                $this->io->writeln('Journal Article Author Created -> '.$articleAuthor['author']['firstName']);
+
+            }catch(\Exception $e){
+                echo $e->getMessage();
+                return false;
+            }
+        }
     }
 
     private function createCitations($journalId, $articleId)
     {
+        foreach(range(1,5) as $number){
+            $articleCitation = [
+                'raw' => $this->faker->text(30),
+                'type' => 2,
+                'orderNum' => $number,
+            ];
+            try{
+                $this->client->post($this->apiBaseUri.'journal/'.$journalId.'/article/'.$articleId.'/citations.json?apikey='.$this->apikey, [
+                    'json' => $articleCitation,
+                    'headers' => [
+                        'Content-Type'     => 'application/json',
+                    ]
+                ]);
 
+                $this->io->writeln('Journal Article Citation Created -> '.$articleCitation['raw']);
+
+            }catch(\Exception $e){
+                echo $e->getMessage();
+                return false;
+            }
+        }
     }
 }
