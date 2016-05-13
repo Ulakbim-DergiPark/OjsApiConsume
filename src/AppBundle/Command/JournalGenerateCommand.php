@@ -198,7 +198,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
         $journal = [
             'translations' => [
                 'tr' => [
-                    'title' => $this->faker->text(70).' - '.date("H:i:s"),
+                    'title' => $this->faker->text(40).' - '.date("H:i:s"),
                     'subtitle' => $this->faker->text(70),
                     'description' => $this->faker->text(1500),
                     'titleAbbr' => $this->faker->text(70),
@@ -215,7 +215,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
             'domain' => $this->faker->domainName,
             'issn' => '',
             'eissn' => '',
-            'founded' => 2014,
+            'founded' => rand(2010, 2014),
             'googleAnalyticsId' => 'Google Ana. ID',
             'country' => $this->country,
             'footer_text' => $this->faker->text(30),
@@ -243,11 +243,11 @@ class JournalGenerateCommand extends ContainerAwareCommand
 
     private function createSections($journalId)
     {
-        foreach(range(1,4) as $number){
+        foreach(range(1,3) as $number){
             $section = [
                 'translations' => [
                     'tr' => [
-                        'title' => $this->faker->text(50),
+                        'title' => $this->faker->text(rand(30,70)),
                     ]
                 ],
                 'allowIndex' => 1,
@@ -264,7 +264,6 @@ class JournalGenerateCommand extends ContainerAwareCommand
                 $location = $response->getHeader('Location');
                 $sectionId = explode('=', $location[0])[1];
 
-
                 $this->io->writeln('Journal Section Created -> '.$section['translations']['tr']['title'].' -> '.$sectionId);
                 $this->sectionIds[] = $sectionId;
             }catch(\Exception $e){
@@ -276,7 +275,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
 
     private function createIssues($journalId)
     {
-        foreach(range(1,2) as $number){
+        foreach(range(1,rand(3,6)) as $number){
             $issue = [
                 'translations' => [
                     'tr' => [
@@ -286,9 +285,9 @@ class JournalGenerateCommand extends ContainerAwareCommand
                 ],
                 'volume' => rand(1, 5),
                 'number' => rand(1,5),
-                'special' => 1,
-                'supplement' => 1,
-                'year' => 2012,
+                'special' => ['', 1][array_rand(['', 1], 1)],
+                'supplement' => ['', 1][array_rand(['', 1], 1)],
+                'year' => rand(2010,2016),
                 'datePublished' => '27-09-1994',
                 'tags' => ['consume', 'api'],
                 'published' => 1,
@@ -326,7 +325,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
 
     private function createArticles($journalId, $issueId)
     {
-        foreach(range(1,4) as $number){
+        foreach(range(1,rand(10,20)) as $number){
             $article = [
                 'translations' => [
                     'tr' => [
@@ -366,7 +365,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
                 $articleId = end($explode);
 
                 $this->io->writeln('Journal Article Created -> '.$article['translations']['tr']['title']);
-                $this->articleToIssue($journalId, $issueId, $articleId, $this->sectionIds[$number-1]);
+                $this->articleToIssue($journalId, $issueId, $articleId, $this->sectionIds[array_rand($this->sectionIds, 1)]);
                 $this->createFile($journalId, $articleId);
                 $this->createAuthors($journalId, $articleId);
                 $this->createCitations($journalId, $articleId);
@@ -396,33 +395,35 @@ class JournalGenerateCommand extends ContainerAwareCommand
 
     private function createFile($journalId, $articleId)
     {
-        $articleFile = [
-            'file' => [
-                'filename' => 'sampleArticleFile.pdf',
-                'encoded_content' => $this->sampleArticleFileEncoded,
-            ],
-            'type' => 2,
-            'langCode' => 1,
-            'title' => $this->faker->text(5),
-            'description' => $this->faker->text(50),
-        ];
-        try{
-            $this->client->post($this->apiBaseUri.'journal/'.$journalId.'/article/'.$articleId.'/files.json?apikey='.$this->apikey, [
-                'json' => $articleFile,
-                'headers' => [
-                    'Content-Type'     => 'application/json',
-                ]
-            ]);
-            $this->io->writeln('Journal Article File Created -> '.$articleFile['title']);
-        }catch(\Exception $e){
-            $this->io->error($e->getResponse()->getBody());
-            return false;
+        foreach(range(1, rand(1,3)) as $number) {
+            $articleFile = [
+                'file' => [
+                    'filename' => 'sampleArticleFile.pdf',
+                    'encoded_content' => $this->sampleArticleFileEncoded,
+                ],
+                'type' => 2,
+                'langCode' => 1,
+                'title' => $this->faker->text(5),
+                'description' => $this->faker->text(50),
+            ];
+            try {
+                $this->client->post($this->apiBaseUri . 'journal/' . $journalId . '/article/' . $articleId . '/files.json?apikey=' . $this->apikey, [
+                    'json' => $articleFile,
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                    ]
+                ]);
+                $this->io->writeln('Journal Article File Created -> ' . $articleFile['title']);
+            } catch (\Exception $e) {
+                $this->io->error($e->getResponse()->getBody());
+                return false;
+            }
         }
     }
 
     private function createAuthors($journalId, $articleId)
     {
-        foreach(range(1,2) as $number){
+        foreach(range(1,rand(2,5)) as $number){
             $articleAuthor = [
                 'author' => [
                     'orcid' => 'orcid-id',
@@ -467,9 +468,9 @@ class JournalGenerateCommand extends ContainerAwareCommand
 
     private function createCitations($journalId, $articleId)
     {
-        foreach(range(1,5) as $number){
+        foreach(range(1, rand(10,16)) as $number){
             $articleCitation = [
-                'raw' => $this->faker->text(100),
+                'raw' => $this->faker->text(rand(100, 150)),
                 'type' => 2,
                 'orderNum' => $number,
             ];
