@@ -105,6 +105,12 @@ class JournalGenerateCommand extends ContainerAwareCommand
     private $sampleArticleHeaderEncoded;
     private $sampleArticleFile = 'http://www.cbu.edu.zm/downloads/pdf-sample.pdf';
     private $sampleArticleFileEncoded;
+    private $sampleJournalHeader = 'http://lorempixel.com/960/200/';
+    private $sampleJournalHeaderEncoded;
+    private $sampleJournalImage = 'http://lorempixel.com/200/300/';
+    private $sampleJournalImageEncoded;
+    private $sampleJournalLogo = 'http://lorempixel.com/200/200/';
+    private $sampleJournalLogoEncoded;
 
     protected function configure()
     {
@@ -144,6 +150,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
         $issueCacheDir = $cacheDir.'api_issue/';
         $articleCacheDir = $cacheDir.'api_article/';
         $articleFileCacheDir = $cacheDir.'api_article_file/';
+        $journalCacheDir = $cacheDir.'api_journal/';
         if(!is_dir($cacheDir) || !is_dir($issueCacheDir)){
             mkdir($issueCacheDir, 0775, true);
         }
@@ -152,6 +159,9 @@ class JournalGenerateCommand extends ContainerAwareCommand
         }
         if(!is_dir($cacheDir) || !is_dir($articleFileCacheDir)){
             mkdir($articleFileCacheDir, 0775, true);
+        }
+        if(!is_dir($cacheDir) || !is_dir($journalCacheDir)){
+            mkdir($journalCacheDir, 0775, true);
         }
         if(!file_exists($issueCacheDir.'sampleFile')){
             file_put_contents($issueCacheDir.'sampleIssueFile', file_get_contents($this->sampleIssueFile));
@@ -168,11 +178,23 @@ class JournalGenerateCommand extends ContainerAwareCommand
         if(!file_exists($articleFileCacheDir.'sampleArticleFile')){
             file_put_contents($articleFileCacheDir.'sampleArticleFile', file_get_contents($this->sampleArticleFile));
         }
+        if(!file_exists($journalCacheDir.'sampleJournalHeader')){
+            file_put_contents($journalCacheDir.'sampleJournalHeader', file_get_contents($this->sampleJournalHeader));
+        }
+        if(!file_exists($journalCacheDir.'sampleJournalLogo')){
+            file_put_contents($journalCacheDir.'sampleJournalLogo', file_get_contents($this->sampleJournalLogo));
+        }
+        if(!file_exists($journalCacheDir.'sampleJournalImage')){
+            file_put_contents($journalCacheDir.'sampleJournalImage', file_get_contents($this->sampleJournalImage));
+        }
         $this->sampleArticleFileEncoded = base64_encode(file_get_contents($articleFileCacheDir.'sampleArticleFile'));
         $this->sampleFileEncoded = base64_encode(file_get_contents($issueCacheDir.'sampleIssueFile'));
         $this->sampleIssueCoverEncoded = base64_encode(file_get_contents($issueCacheDir.'sampleIssueCover'));
         $this->sampleIssueHeaderEncoded = base64_encode(file_get_contents($issueCacheDir.'sampleIssueHeader'));
         $this->sampleArticleHeaderEncoded = base64_encode(file_get_contents($articleCacheDir.'sampleArticleHeader'));
+        $this->sampleJournalHeaderEncoded = base64_encode(file_get_contents($journalCacheDir.'sampleJournalHeader'));
+        $this->sampleJournalImageEncoded = base64_encode(file_get_contents($journalCacheDir.'sampleJournalImage'));
+        $this->sampleJournalLogoEncoded = base64_encode(file_get_contents($journalCacheDir.'sampleJournalLogo'));
     }
 
     /**
@@ -221,6 +243,18 @@ class JournalGenerateCommand extends ContainerAwareCommand
             'footer_text' => $this->faker->text(30),
             'slug' => $this->faker->slug,
             'tags' => ['journal'],
+            'header' => [
+                'filename' => 'sampleJournalCover.jpg',
+                'encoded_content' => $this->sampleJournalHeaderEncoded,
+            ],
+            'image' => [
+                'filename' => 'sampleJournalImage.jpg',
+                'encoded_content' => $this->sampleJournalImageEncoded,
+            ],
+            'logo' => [
+                'filename' => 'sampleJournalLogo.jpg',
+                'encoded_content' => $this->sampleJournalLogoEncoded,
+            ],
         ];
         try{
             $response = $this->client->post($this->apiBaseUri.'journals.json?apikey='.$this->apikey, [
@@ -285,8 +319,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
                 ],
                 'volume' => rand(1, 5),
                 'number' => rand(1,5),
-                'special' => ['', 1][array_rand(['', 1], 1)],
-                'supplement' => ['', 1][array_rand(['', 1], 1)],
+                'supplement' => 1,
                 'year' => rand(2010,2016),
                 'datePublished' => '27-09-1994',
                 'tags' => ['consume', 'api'],
@@ -304,6 +337,9 @@ class JournalGenerateCommand extends ContainerAwareCommand
                     'encoded_content' => $this->sampleIssueHeaderEncoded,
                 ],
             ];
+            if(rand(0,1)){
+                $issue['special'] = '';
+            }
             try{
                 $response = $this->client->post($this->apiBaseUri.'journal/'.$journalId.'/issues.json?apikey='.$this->apikey, [
                     'json' => $issue,
