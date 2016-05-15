@@ -13,7 +13,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use GuzzleHttp\Client;
 use Faker\Factory;
 
-class JournalGenerateCommand extends ContainerAwareCommand
+class JournalGenerateDirectCommand extends ContainerAwareCommand
 {
     /**
      * @var EntityManager
@@ -115,7 +115,7 @@ class JournalGenerateCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('ojs:api:generate:journal')
+            ->setName('ojs:api:generate:journal:direct')
             ->setDescription('Generate sample journal, issue, section, article, file and citation via OJS API.')
         ;
     }
