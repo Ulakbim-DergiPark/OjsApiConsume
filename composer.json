@@ -20,6 +20,10 @@
         {
             "type": "git",
             "url": "git@bitbucket.org:bulutyazilim/ojs-php-sdk.git"
+        },
+        {
+          "type": "git",
+          "url": "git@bitbucket.org:bulutyazilim/ojsbundle.git"
         }
     ],
     "require": {
@@ -35,7 +39,8 @@
         "incenteev/composer-parameter-handler": "^2.0",
         "fzaninotto/faker": "^1.6",
         "guzzlehttp/guzzle": "^6.2",
-        "ojs/ojs-php-sdk": "dev-master"
+        "ojs/ojs-php-sdk": "dev-master",
+        "ojs/ojs-bundle": "dev-master"
     },
     "require-dev": {
         "sensio/generator-bundle": "^3.0",
