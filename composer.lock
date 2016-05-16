@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "b9ba67fd6a4f550a2587caed5a794d01",
-    "content-hash": "f7954126aec26000d04eb54553932351",
+    "hash": "99c4a028152f23e4421f93274ed66ad3",
+    "content-hash": "84a7c4fa6711060cf9d4b201395bb41a",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -1172,6 +1172,85 @@
             "time": "2016-04-12 18:29:35"
         },
         {
+            "name": "ojs/ojs-bundle",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "git@bitbucket.org:bulutyazilim/ojsbundle.git",
+                "reference": "b0fa7fdb0c54ce70650e99ddbd43291978b3acca"
+            },
+            "require": {
+                "doctrine/orm": "~2.5",
+                "guzzlehttp/guzzle": "~6.2",
+                "ojs/ojs-php-sdk": "dev-master",
+                "php": ">=5.5.9",
+                "symfony/symfony": "~2.8|~3.0"
+            },
+            "type": "project",
+            "autoload": {
+                "psr-4": {
+                    "Ojs\\OjsBundle\\": ""
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "OJS bundle for OJS",
+            "keywords": [
+                "import",
+                "ojs",
+                "symfony"
+            ],
+            "support": {
+                "email": "info@okulbilisim.com"
+            },
+            "time": "2016-05-15 22:11:05"
+        },
+        {
+            "name": "ojs/ojs-php-sdk",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "git@bitbucket.org:bulutyazilim/ojs-php-sdk.git",
+                "reference": "6625be9aae91c37c2c3fc9e74f4584791b921e76"
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^6.2",
+                "php": ">=5.4.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "~0.8",
+                "phpunit/phpunit": "~4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Ojs\\": "src/Ojs/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "OJS\\Tests\\": "Tests/"
+                }
+            },
+            "license": [
+                "https://github.com/ojs/ojs/blob/master/LICENSE"
+            ],
+            "authors": [
+                {
+                    "name": "OJS",
+                    "homepage": "https://github.com/ojs/ojs-php-sdk/graphs/contributors"
+                }
+            ],
+            "description": "OJS PHP SDK for OJS",
+            "homepage": "https://github.com/ojs/ojs-php-sdk",
+            "keywords": [
+                "ojs",
+                "sdk"
+            ],
+            "time": "2016-05-15 21:26:08"
+        },
+        {
             "name": "paragonie/random_compat",
             "version": "v1.4.1",
             "source": {
@@ -2221,7 +2300,10 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "ojs/ojs-php-sdk": 20,
+        "ojs/ojs-bundle": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
