@@ -323,7 +323,7 @@ class JournalGenerateDirectCommand extends ContainerAwareCommand
                 'year' => rand(2010,2016),
                 'datePublished' => '27-09-1994',
                 'tags' => ['consume', 'api'],
-                'published' => 1,
+                'visibility' => 1,
                 'full_file' => [
                     'filename' => 'samplefile.pdf',
                     'encoded_content' => $this->sampleFileEncoded
